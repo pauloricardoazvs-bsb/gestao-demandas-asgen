@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Gestão de Demandas - TRF1 ASGEN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .card-dragging { opacity: 0.3; transform: scale(0.98); border: 2px dashed #003865 !important; background-color: #f8fafc !important; }
+        .drop-indicator-top { border-top: 4px solid #007A33 !important; }
+        .drop-indicator-bottom { border-bottom: 4px solid #007A33 !important; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="w-full h-2 bg-gradient-to-r from-[#003865] via-[#007A33] to-[#75787B]"></div>
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6">
+        
+        <header class="bg-white rounded-2xl shadow-md border border-slate-200/90 p-6 mb-5 flex flex-col lg:flex-row justify-between items-center gap-6">
+            <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+                <div class="flex items-center gap-3.5 pr-0 sm:pr-5 sm:border-r-2 border-slate-200">
+                    <svg width="68" height="58" viewBox="0 0 130 105" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0 drop-shadow-sm">
+                        <path d="M52 4 L38 18 L38 42 C38 48 33 52 26 52 L6 52 L18 64 L36 64 C46 64 52 58 52 48 Z" fill="#003865"/>
+                        <path d="M60 4 L60 36 C60 46 66 52 76 52 L112 52 L98 38 L76 38 C71 38 68 35 68 31 L68 4 Z" fill="#8C8F94"/>
+                        <path d="M10 68 L24 82 L42 82 C47 82 50 85 50 89 L50 101 L60 91 L60 77 C60 67 53 64 42 64 Z" fill="#8C8F94"/>
+                        <path d="M66 101 L80 87 L80 63 C80 57 85 53 92 53 L116 53 L102 41 L88 41 C78 41 66 47 66 57 Z" fill="#007A33"/>
+                    </svg>
+                    <div class="leading-tight text-left">
+                        <div class="text-lg font-light tracking-widest text-[#58595B]">JUSTIÇA FEDERAL</div>
+                        <div class="text-[11px] font-medium text-[#58595B] tracking-tight">Tribunal Regional Federal da 1ª Região</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-center sm:justify-start gap-2 mb-1">
+                        <span class="bg-[#003865] text-white text-[10px] font-bold uppercase px-2.5 py-0.5 rounded tracking-wider">ASGEN</span>
+                        <span class="text-xs font-semibold text-[#007A33] flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-[#007A33] animate-ping"></span>
+                            <span id="textoSync">Sincronizado na Intranet</span>
+                        </span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-extrabold text-[#003865] tracking-tight">Portal de Transparência e Gestão de Demandas</h1>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shadow-inner">
+                <button id="btnStatusModo" type="button" onclick="window.controlarAcessoModo()" class="px-4 py-2.5 text-xs font-bold rounded-lg transition-all bg-[#003865] text-white shadow-sm flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-lock text-amber-300"></i> Área Restrita (ASGEN)
+                </button>
+            </div>
+        </header>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                <div>
+                    <h2 class="text-xs font-extrabold uppercase tracking-wider text-[#003865] mb-1">
+                        <i class="fa-solid fa-filter mr-1 text-[#007A33]"></i> Filtrar por Instância:
+                    </h2>
+                    <p class="text-xs text-slate-500">Navegue entre Todos, 1º Grau, 2º Grau ou Turmas Recursais.</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                    <button onclick="window.selecionarFiltroAbas('TODOS', 'Andamento')" id="tabTodos" class="px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all bg-[#003865] text-white shadow-sm flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-layer-group"></i> Todos
+                    </button>
+                    <button onclick="window.selecionarFiltroAbas('PJe 1º Grau', 'Andamento')" id="tab1" class="px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all text-slate-700 hover:bg-white flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-map-location-dot text-[#007A33]"></i> 1º Grau
+                    </button>
+                    <button onclick="window.selecionarFiltroAbas('PJe 2º Grau', 'Andamento')" id="tab2" class="px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all text-slate-700 hover:bg-white flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-gavel text-[#003865]"></i> 2º Grau
+                    </button>
+                    <button onclick="window.selecionarFiltroAbas('Turmas Recursais', 'Andamento')" id="tabTurmas" class="px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all text-slate-700 hover:bg-white flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-scale-balanced text-amber-700"></i> Turmas Recursais
+                    </button>
+                    <button onclick="window.selecionarFiltroAbas('TODOS', 'Concluido')" id="tabConcluidos" class="hidden px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all text-slate-700 hover:bg-white items-center gap-1.5 cursor-pointer border-l border-slate-300">
+                        <i class="fa-solid fa-circle-check text-[#007A33]"></i> Concluídos
+                    </button>
+                </div>
+            </div>
+
+            <div id="barraBuscaInterna" class="hidden pt-4 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-3 flex-1">
+                    <div class="relative min-w-[240px] flex-1">
+                        <i class="fa-solid fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                        <input type="text" id="filtroBusca" oninput="window.renderizarTudo()" placeholder="Buscar por título..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#003865]">
+                    </div>
+                </div>
+
+                <button onclick="window.abrirModalNovaDemanda()" class="bg-[#007A33] hover:bg-emerald-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-plus"></i> Nova Demanda
+                </button>
+            </div>
+        </div>
+
+        <div id="bannerModo" class="bg-[#003865]/10 border border-[#003865]/20 text-[#003865] text-xs font-bold px-4 py-2.5 rounded-xl mb-6 flex items-center justify-between">
+            <span><i class="fa-solid fa-shield-halved mr-1.5"></i> MODO DE CONSULTA PÚBLICA — Fila oficial em ordem de prioridade.</span>
+            <span id="resumoFiltroAtivo" class="bg-[#003865] text-white px-2.5 py-0.5 rounded text-[10px]">Exibindo: Todos (Em Andamento)</span>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+            <div class="bg-[#003865] text-white px-6 py-3.5 flex justify-between items-center text-xs font-extrabold uppercase tracking-wider">
+                <span id="tituloTabelaPainel"><i class="fa-solid fa-list-ol mr-2"></i> Ordem de Prioridade de Atendimento (Em Andamento)</span>
+                <span id="contadorLinhas" class="bg-white/20 px-2.5 py-0.5 rounded-full text-white">0 itens</span>
+            </div>
+            <div id="tabelaDemandas" class="divide-y divide-slate-100" ondragover="event.preventDefault()"></div>
+        </div>
+    </div>
+
+    <div id="modalDetalhes" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border-t-8 border-[#003865]">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+                <div>
+                    <span id="detalheProtocoloModal" class="text-xs font-extrabold text-slate-400">#DEM-000</span>
+                    <h3 id="detalheTitulo" class="text-base font-extrabold text-[#003865]">Título da Demanda</h3>
+                </div>
+                <button onclick="window.fecharModalDetalhes()" class="text-slate-400 hover:text-slate-700 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs text-slate-700">
+                <div>
+                    <span class="font-bold uppercase text-slate-400 block text-[10px]">Instância:</span>
+                    <span id="detalheOrgao" class="font-semibold text-slate-800">Instância</span>
+                </div>
+                <div>
+                    <span class="font-bold uppercase text-slate-400 block text-[10px]">Descrição Detalhada:</span>
+                    <p id="detalheDescricaoCompleta" class="bg-slate-50 p-3 rounded-xl border border-slate-200 leading-relaxed mt-1 text-slate-700"></p>
+                </div>
+                <div id="containerNotaPrivadaModal" class="hidden">
+                    <span class="font-bold uppercase text-amber-700 block text-[10px]"><i class="fa-solid fa-lock mr-1"></i> Notas (Privadas - Uso Interno ASGEN):</span>
+                    <p id="detalheNotaPrivada" class="bg-amber-50 p-3 rounded-xl border border-amber-200 leading-relaxed mt-1 text-amber-900 font-medium"></p>
+                </div>
+            </div>
+            <div class="flex justify-end pt-4 mt-4 border-t border-slate-200">
+                <button onclick="window.fecharModalDetalhes()" class="px-5 py-2 bg-[#003865] text-white rounded-xl text-xs font-bold hover:bg-blue-950 shadow-md cursor-pointer">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalLogin" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-t-8 border-[#003865]">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-[#003865] text-white p-2 rounded-xl text-sm"><i class="fa-solid fa-lock"></i></div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-[#003865]">Acesso Restrito - ASGEN</h3>
+                        <p class="text-[11px] text-slate-500">Digite seu usuário (Anaclara, Anderson ou Paulo)</p>
+                    </div>
+                </div>
+                <button onclick="window.fecharModalLogin()" class="text-slate-400 hover:text-slate-700 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form onsubmit="window.realizarLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Usuário</label>
+                    <input type="text" id="loginUsuario" required placeholder="Ex: Anaclara, Anderson ou Paulo" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#003865]">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Senha</label>
+                    <input type="password" id="loginSenha" required placeholder="Digite a senha..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#003865]">
+                </div>
+                <div id="erroLogin" class="text-red-600 text-xs font-bold hidden bg-red-50 p-2.5 rounded-lg border border-red-100">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> Usuário ou senha incorretos.
+                </div>
+                <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
+                    <button type="button" onclick="window.fecharModalLogin()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-[#003865] text-white rounded-xl text-xs font-bold hover:bg-blue-950 shadow-md cursor-pointer">Entrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalDemanda" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 border-t-8 border-[#003865] max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+                <div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#007A33]">Cadastro Oficial ASGEN</span>
+                    <h3 id="modalDemandaTitulo" class="text-lg font-extrabold text-[#003865]">Registrar Nova Demanda</h3>
+                </div>
+                <button onclick="window.fecharModalNovaDemanda()" class="text-slate-400 hover:text-slate-700 cursor-pointer"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <form id="formNovaDemanda" onsubmit="window.salvarNovaDemanda(event)" class="space-y-4">
+                <input type="hidden" id="editandoId" value="">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Título da Demanda *</label>
+                    <input type="text" id="novoTitulo" required placeholder="Ex: Configuração de Sistema..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#003865]">
+                </div>
+
+                <div id="containerInstanciasCheck">
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Instâncias (Selecione uma ou mais) *</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                            <input type="checkbox" name="instanciasCheck" value="PJe 1º Grau" class="w-4 h-4 text-[#003865] rounded focus:ring-[#003865]"> PJe 1º Grau
+                        </label>
+                        <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                            <input type="checkbox" name="instanciasCheck" value="PJe 2º Grau" class="w-4 h-4 text-[#003865] rounded focus:ring-[#003865]"> PJe 2º Grau
+                        </label>
+                        <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                            <input type="checkbox" name="instanciasCheck" value="Turmas Recursais" class="w-4 h-4 text-[#003865] rounded focus:ring-[#003865]"> Turmas Recursais
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Resp. Atendimento *</label>
+                        <input type="text" id="novoResponsavel" placeholder="Nome do analista" required class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#003865]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Lançado por *</label>
+                        <input type="text" id="autorLancamentoInput" readonly class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-sm font-bold text-[#003865] focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Descrição Detalhada *</label>
+                    <textarea id="novaDescricao" rows="3" required placeholder="Informações públicas detalhadas..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#003865]"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-amber-700 uppercase mb-1"><i class="fa-solid fa-lock mr-1"></i> Notas (Privadas - Visível apenas para o Interno)</label>
+                    <textarea id="novaNotaPrivada" rows="2" placeholder="Anotações internas, observações de andamento..." class="w-full px-3.5 py-2.5 bg-amber-50/50 border border-amber-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-600 text-amber-900"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+                    <button type="button" onclick="window.fecharModalNovaDemanda()" class="px-4 py-2.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 bg-[#003865] text-white rounded-xl text-xs font-bold hover:bg-blue-950 shadow-md cursor-pointer">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let modoAtual = 'externo';
+        let usuarioLogado = '';
+        let grauFiltroAtivo = 'TODOS';
+        let statusFiltroAtivo = 'Andamento';
+        let idArrastado = null;
+
+        let demandas = [
+            { id: "DEM-101", titulo: "Configuração de Perfis e Vinculação de Procuradores", categoria: "PJe 1º Grau", status: "Andamento", responsavelDemanda: "Paulo Ricardo", autorLancamento: "Paulo", descricao: "Ajuste completo de perfis institucionais, liberação de tokens e vinculação cadastral de novos procuradores federais na base do PJe 1º Grau.", notaPrivada: "Aguardando validação da corregedoria." },
+            { id: "DEM-102", titulo: "Otimização da Fila de Transmissão de Acórdãos", categoria: "PJe 2º Grau", status: "Andamento", responsavelDemanda: "Carlos Eduardo", autorLancamento: "Anderson", descricao: "Correção de gargalos técnicos no painel de assinatura em lote e liberação de processos represados para a sessão colegiada.", notaPrivada: "Tratativa prioritária com a STI." },
+            { id: "DEM-103", titulo: "Validação e Homologação de Certificação Digital", categoria: "Turmas Recursais", status: "Andamento", responsavelDemanda: "Roberto Lima", autorLancamento: "Anaclara", descricao: "Verificação detalhada de compatibilidade de chaves criptográficas para magistrados das turmas recursais.", notaPrivada: "Necessário apoio técnico da central." }
+        ];
+
+        try {
+            let salvo = localStorage.getItem('demandas_asgen_trf1_v20');
+            if (salvo) {
+                let parsed = JSON.parse(salvo);
+                if (Array.isArray(parsed) && parsed.length > 0) { demandas = parsed; }
+            }
+        } catch(e) {}
+
+        function salvarDados() {
+            try {
+                localStorage.setItem('demandas_asgen_trf1_v20', JSON.stringify(demandas));
+            } catch(e){}
+            const syncEl = document.getElementById('textoSync');
+            if(syncEl) syncEl.textContent = "Sincronizado na Intranet";
+        }
+
+        window.controlarAcessoModo = function() {
+            if (modoAtual === 'interno') {
+                modoAtual = 'externo';
+                usuarioLogado = '';
+                statusFiltroAtivo = 'Andamento';
+                atualizarInterfaceModo();
+            } else {
+                const m = document.getElementById('modalLogin');
+                if(m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+                const err = document.getElementById('erroLogin');
+                if(err) err.classList.add('hidden');
+                document.getElementById('loginUsuario').value = '';
+                document.getElementById('loginSenha').value = '';
+            }
+        };
+
+        window.fecharModalLogin = function() {
+            const m = document.getElementById('modalLogin');
+            if(m) { m.classList.add('hidden'); m.classList.remove('flex'); }
+        };
+
+        window.realizarLogin = function(e) {
+            e.preventDefault();
+            const usuarioInput = document.getElementById('loginUsuario').value.trim().toLowerCase();
+            const senha = document.getElementById('loginSenha').value.trim();
+            const usuariosValidos = ['anaclara', 'anderson', 'paulo'];
+
+            if (usuariosValidos.includes(usuarioInput) && senha === 'Trf@123456') {
+                usuarioLogado = usuarioInput.charAt(0).toUpperCase() + usuarioInput.slice(1);
+                modoAtual = 'interno';
+                window.fecharModalLogin();
+                atualizarInterfaceModo();
+            } else {
+                const err = document.getElementById('erroLogin');
+                if(err) err.classList.remove('hidden');
+            }
+        };
+
+        function atualizarInterfaceModo() {
+            const btnStatus = document.getElementById('btnStatusModo');
+            const barraBusca = document.getElementById('barraBuscaInterna');
+            const banner = document.getElementById('bannerModo');
+            const tabConc = document.getElementById('tabConcluidos');
+
+            if (modoAtual === 'interno') {
+                if(btnStatus) {
+                    btnStatus.className = "px-4 py-2.5 text-xs font-bold rounded-lg transition-all bg-[#007A33] text-white shadow-sm flex items-center gap-2 cursor-pointer";
+                    btnStatus.innerHTML = `<i class="fa-solid fa-user-check text-white"></i> ${usuarioLogado} (Sair)`;
+                }
+                if(barraBusca) barraBusca.classList.remove('hidden');
+                if(banner) {
+                    banner.className = "bg-emerald-900/10 border border-[#007A33]/30 text-[#007A33] text-xs font-bold px-4 py-2.5 rounded-xl mb-6 flex flex-wrap items-center justify-between gap-2";
+                    banner.innerHTML = `<span><i class="fa-solid fa-unlock-keyhole mr-1.5"></i> MODO EDITOR ATIVO (${usuarioLogado}) — Arraste com o mouse ou use setas/lápis.</span><span id="resumoFiltroAtivo" class="bg-[#007A33] text-white px-2.5 py-0.5 rounded text-[10px]">Exibindo: ${grauFiltroAtivo} (${statusFiltroAtivo})</span>`;
+                }
+                if(tabConc) { tabConc.classList.remove('hidden'); tabConc.classList.add('flex'); }
+            } else {
+                if(btnStatus) {
+                    btnStatus.className = "px-4 py-2.5 text-xs font-bold rounded-lg transition-all bg-[#003865] text-white shadow-sm flex items-center gap-2 cursor-pointer";
+                    btnStatus.innerHTML = '<i class="fa-solid fa-lock text-amber-300"></i> Área Restrita (ASGEN)';
+                }
+                if(barraBusca) barraBusca.classList.add('hidden');
+                if(banner) {
+                    banner.className = "bg-[#003865]/10 border border-[#003865]/20 text-[#003865] text-xs font-bold px-4 py-2.5 rounded-xl mb-6 flex flex-wrap items-center justify-between gap-2";
+                    banner.innerHTML = `<span><i class="fa-solid fa-shield-halved mr-1.5"></i> MODO DE CONSULTA PÚBLICA — Fila oficial em ordem de prioridade.</span><span id="resumoFiltroAtivo" class="bg-[#003865] text-white px-2.5 py-0.5 rounded text-[10px]">Exibindo: ${grauFiltroAtivo}</span>`;
+                }
+                if(tabConc) { tabConc.classList.remove('flex'); tabConc.classList.add('hidden'); }
+                statusFiltroAtivo = 'Andamento';
+            }
+            window.renderizarTudo();
+        }
+
+        window.selecionarFiltroAbas = function(grau, status) {
+            grauFiltroAtivo = grau;
+            statusFiltroAtivo = status;
+
+            if (modoAtual === 'externo' && status === 'Concluido') { statusFiltroAtivo = 'Andamento'; }
+
+            const bTodos = document.getElementById('tabTodos');
+            const b1 = document.getElementById('tab1');
+            const b2 = document.getElementById('tab2');
+            const bTurmas = document.getElementById('tabTurmas');
+            const bConc = document.getElementById('tabConcluidos');
+
+            const classeInativa = "px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all text-slate-700 hover:bg-white flex items-center gap-1.5 cursor-pointer";
+            const classeAtivaAzul = "px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all bg-[#003865] text-white shadow-sm flex items-center gap-1.5 cursor-pointer";
+            const classeAtivaVerde = "px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all bg-[#007A33] text-white shadow-sm flex items-center gap-1.5 cursor-pointer";
+
+            if(bTodos) bTodos.className = (grau === 'TODOS' && status === 'Andamento') ? classeAtivaAzul : classeInativa;
+            if(b1) b1.className = (grau === 'PJe 1º Grau' && status === 'Andamento') ? classeAtivaVerde : classeInativa;
+            if(b2) b2.className = (grau === 'PJe 2º Grau' && status === 'Andamento') ? classeAtivaAzul : classeInativa;
+            if(bTurmas) bTurmas.className = (grau === 'Turmas Recursais' && status === 'Andamento') ? classeAtivaVerde : classeInativa;
+            if(bConc && modoAtual === 'interno') bConc.className = (status === 'Concluido') ? classeAtivaVerde : classeInativa;
+
+            const resumo = document.getElementById('resumoFiltroAtivo');
+            if (resumo) resumo.textContent = "Exibindo: " + grau + " (" + (status === 'Andamento' ? 'Em Andamento' : 'Concluídos') + ")";
+
+            const tituloPainel = document.getElementById('tituloTabelaPainel');
+            if (tituloPainel) {
+                tituloPainel.innerHTML = status === 'Andamento' ? 
+                    '<i class="fa-solid fa-list-ol mr-2"></i> Ordem de Prioridade de Atendimento (Em Andamento)' : 
+                    '<i class="fa-solid fa-circle-check mr-2"></i> Histórico de Demandas Concluídas';
+            }
+            window.renderizarTudo();
+        };
+
+        window.abrirModalNovaDemanda = function(idEdicao = null) {
+            const m = document.getElementById('modalDemanda');
+            const tituloModal = document.getElementById('modalDemandaTitulo');
+            const editIdInp = document.getElementById('editandoId');
+            const containerInst = document.getElementById('containerInstanciasCheck');
+
+            if(m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+            const inp = document.getElementById('autorLancamentoInput');
+
+            if (idEdicao) {
+                if(tituloModal) tituloModal.textContent = "Editar Demanda";
+                if(editIdInp) editIdInp.value = idEdicao;
+                if(containerInst) containerInst.style.display = 'none';
+
+                const item = demandas.find(d => d.id === idEdicao);
+                if (item) {
+                    document.getElementById('novoTitulo').value = item.titulo || '';
+                    document.getElementById('novoResponsavel').value = item.responsavelDemanda || '';
+                    document.getElementById('autorLancamentoInput').value = item.autorLancamento || usuarioLogado;
+                    document.getElementById('novaDescricao').value = item.descricao || '';
+                    document.getElementById('novaNotaPrivada').value = item.notaPrivada || '';
+                }
+            } else {
+                if(tituloModal) tituloModal.textContent = "Registrar Nova Demanda";
+                if(editIdInp) editIdInp.value = '';
+                if(containerInst) containerInst.style.display = 'block';
+
+                document.getElementById('formNovaDemanda').reset();
+                if(inp) inp.value = usuarioLogado;
+                document.querySelectorAll('input[name="instanciasCheck"]').forEach(cb => cb.checked = false);
+            }
+        };
+
+        window.fecharModalNovaDemanda = function() {
+            const m = document.getElementById('modalDemanda');
+            if(m) { m.classList.add('hidden'); m.classList.remove('flex'); }
+            document.getElementById('formNovaDemanda').reset();
+        };
+
+        window.salvarNovaDemanda = function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editandoId').value;
+            const titulo = document.getElementById('novoTitulo').value;
+            const responsavel = document.getElementById('novoResponsavel').value;
+            const descricao = document.getElementById('novaDescricao').value;
+            const notaPrivada = document.getElementById('novaNotaPrivada').value;
+
+            if (editId) {
+                const item = demandas.find(d => d.id === editId);
+                if (item) {
+                    item.titulo = titulo;
+                    item.responsavelDemanda = responsavel;
+                    item.descricao = descricao;
+                    item.notaPrivada = notaPrivada;
+                }
+            } else {
+                const checkboxes = document.querySelectorAll('input[name="instanciasCheck"]:checked');
+                if (checkboxes.length === 0) {
+                    alert("Por favor, selecione ao menos uma instância.");
+                    return;
+                }
+                checkboxes.forEach((cb, idx) => {
+                    const proximoNumero = 101 + demandas.length + idx;
+                    demandas.push({
+                        id: "DEM-" + proximoNumero,
+                        titulo: titulo,
+                        categoria: cb.value,
+                        status: "Andamento",
+                        responsavelDemanda: responsavel,
+                        autorLancamento: usuarioLogado,
+                        descricao: descricao,
+                        notaPrivada: notaPrivada
+                    });
+                });
+            }
+            salvarDados();
+            window.fecharModalNovaDemanda();
+            window.renderizarTudo();
+        };
+
+        window.iniciarArraste = function(e, id) {
+            if (modoAtual !== 'interno') { e.preventDefault(); return; }
+            idArrastado = id;
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => e.target.classList.add('card-dragging'), 0);
+        };
+
+        window.finalizarArraste = function(e) {
+            if(e && e.target) e.target.classList.remove('card-dragging');
+            document.querySelectorAll('.drop-indicator-top, .drop-indicator-bottom').forEach(el => {
+                el.classList.remove('drop-indicator-top', 'drop-indicator-bottom');
+            });
+        };
+
+        window.arrastarSobreLinha = function(e, idAlvo) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (modoAtual !== 'interno' || idArrastado === idAlvo) return;
+            const linhaEl = e.currentTarget;
+            const rect = linhaEl.getBoundingClientRect();
+            const meioY = rect.top + rect.height / 2;
+            linhaEl.classList.remove('drop-indicator-top', 'drop-indicator-bottom');
+            if (e.clientY < meioY) linhaEl.classList.add('drop-indicator-top');
+            else linhaEl.classList.add('drop-indicator-bottom');
+        };
+
+        window.sairDaLinha = function(e) {
+            e.currentTarget.classList.remove('drop-indicator-top', 'drop-indicator-bottom');
+        };
+
+        window.droparNaLinha = function(e, idAlvo) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (modoAtual !== 'interno' || !idArrastado || idArrastado === idAlvo) return;
+            const linhaEl = e.currentTarget;
+            const rect = linhaEl.getBoundingClientRect();
+            const inserirDepois = e.clientY >= (rect.top + rect.height / 2);
+            linhaEl.classList.remove('drop-indicator-top', 'drop-indicator-bottom');
+
+            const idxOrigem = demandas.findIndex(d => d.id === idArrastado);
+            if (idxOrigem === -1) return;
+            const [itemMovido] = demandas.splice(idxOrigem, 1);
+            const idxAlvo = demandas.findIndex(d => d.id === idAlvo);
+            demandas.splice(inserirDepois ? idxAlvo + 1 : idxAlvo, 0, itemMovido);
+            idArrastado = null;
+            salvarDados();
+            window.renderizarTudo();
+        };
+
+        window.moverPosicaoLinha = function(id, direcao) {
+            if (modoAtual !== 'interno') return;
+            const itemAtual = demandas.find(d => d.id === id);
+            if (!itemAtual) return;
+
+            const listaFiltrada = demandas.filter(d => d.status === statusFiltroAtivo && (grauFiltroAtivo === 'TODOS' || d.categoria === grauFiltroAtivo));
+            const pos = listaFiltrada.findIndex(d => d.id === id);
+            const novaPos = pos + direcao;
+            if (novaPos < 0 || novaPos >= listaFiltrada.length) return;
+
+            const itemAlvo = listaFiltrada[novaPos];
+            const idxRealAtual = demandas.findIndex(d => d.id === itemAtual.id);
+            const idxRealAlvo = demandas.findIndex(d => d.id === itemAlvo.id);
+
+            const temp = demandas[idxRealAtual];
+            demandas[idxRealAtual] = demandas[idxRealAlvo];
+            demandas[idxRealAlvo] = temp;
+            salvarDados();
+            window.renderizarTudo();
+        };
+
+        window.mudarStatus = function(id, novoStatus) {
+            if (modoAtual !== 'interno') return;
+            const item = demandas.find(d => d.id === id);
+            if (item) { item.status = novoStatus; salvarDados(); window.renderizarTudo(); }
+        };
+
+        window.abrirDetalhes = function(id) {
+            const d = demandas.find(item => item.id === id);
+            if (!d) return;
+            document.getElementById('detalheProtocoloModal').textContent = "#" + d.id;
+            document.getElementById('detalheTitulo').textContent = d.titulo;
+            document.getElementById('detalheOrgao').textContent = d.categoria;
+            document.getElementById('detalheDescricaoCompleta').textContent = d.descricao || "Nenhuma descrição detalhada informada.";
+            
+            const containerNota = document.getElementById('containerNotaPrivadaModal');
+            if (modoAtual === 'interno') {
+                containerNota.classList.remove('hidden');
+                document.getElementById('detalheNotaPrivada').textContent = d.notaPrivada || "Nenhuma nota privada registrada.";
+            } else {
+                containerNota.classList.add('hidden');
+            }
+            document.getElementById('modalDetalhes').classList.remove('hidden');
+            document.getElementById('modalDetalhes').classList.add('flex');
+        };
+
+        window.fecharModalDetalhes = function() {
+            document.getElementById('modalDetalhes').classList.add('hidden');
+            document.getElementById('modalDetalhes').classList.remove('flex');
+        };
+
+        window.renderizarTudo = function() {
+            const tabelaDemandas = document.getElementById('tabelaDemandas');
+            if(!tabelaDemandas) return;
+            tabelaDemandas.innerHTML = '';
+
+            const filtradas = demandas.filter(d => (grauFiltroAtivo === 'TODOS' || d.categoria === grauFiltroAtivo) && d.status === statusFiltroAtivo);
+            let listaFinal = filtradas;
+            if (modoAtual === 'interno') {
+                const busca = document.getElementById('filtroBusca').value.toLowerCase();
+                if (busca) {
+                    listaFinal = filtradas.filter(d => d.titulo.toLowerCase().includes(busca) || d.id.toLowerCase().includes(busca) || (d.responsavelDemanda && d.responsavelDemanda.toLowerCase().includes(busca)));
+                }
+            }
+
+            document.getElementById('contadorLinhas').textContent = listaFinal.length + " itens";
+            if (listaFinal.length === 0) {
+                tabelaDemandas.innerHTML = '<div class="p-8 text-center text-xs text-slate-400 font-medium">Nenhuma demanda encontrada nesta visualização.</div>';
+                return;
+            }
+
+            listaFinal.forEach((d, index) => {
+                const tagGrauCor = d.categoria === 'PJe 1º Grau' ? 'bg-[#007A33] text-white' : (d.categoria === 'PJe 2º Grau' ? 'bg-[#003865] text-white' : 'bg-amber-700 text-white');
+                const resumoDesc = d.descricao && d.descricao.length ? d.descricao.substring(0, 75) + '...' : 'Sem descrição.';
+
+                let acoesInternasHTML = '';
+                let draggableAttr = 'false';
+                let classesLinha = "p-4 sm:px-6 hover:bg-slate-50/80 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4";
+
+                if (modoAtual === 'interno') {
+                    draggableAttr = 'true';
+                    classesLinha += " cursor-grab active:cursor-grabbing";
+                    const botaoStatusHTML = d.status === 'Andamento' ? 
+                        `<button onclick="window.mudarStatus('${d.id}', 'Concluido')" class="bg-[#007A33] hover:bg-emerald-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">Concluir <i class="fa-solid fa-check"></i></button>` :
+                        `<button onclick="window.mudarStatus('${d.id}', 'Andamento')" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"><i class="fa-solid fa-rotate-left"></i> Reabrir</button>`;
+
+                    acoesInternasHTML = `
+                        <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                            <span class="px-2 text-slate-400" title="Arraste pelo card com o mouse"><i class="fa-solid fa-grip-vertical"></i></span>
+                            <button onclick="window.abrirModalNovaDemanda('${d.id}')" title="Editar Demanda" class="p-1.5 px-2 text-xs text-blue-700 hover:bg-white rounded-lg shadow-sm transition-all cursor-pointer"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="window.moverPosicaoLinha('${d.id}', -1)" title="Subir na Fila" class="p-1.5 px-2.5 text-xs text-slate-600 hover:bg-white rounded-lg shadow-sm transition-all cursor-pointer"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button onclick="window.moverPosicaoLinha('${d.id}', 1)" title="Descer na Fila" class="p-1.5 px-2.5 text-xs text-slate-600 hover:bg-white rounded-lg shadow-sm transition-all cursor-pointer"><i class="fa-solid fa-arrow-down"></i></button>
+                            ${botaoStatusHTML}
+                        </div>
+                    `;
+                }
+
+                tabelaDemandas.innerHTML += `
+                    <div draggable="${draggableAttr}"
+                         ondragstart="window.iniciarArraste(event, '${d.id}')"
+                         ondragend="window.finalizarArraste(event)"
+                         ondragover="window.arrastarSobreLinha(event, '${d.id}')"
+                         ondragleave="window.sairDaLinha(event)"
+                         ondrop="window.droparNaLinha(event, '${d.id}')"
+                         class="${classesLinha}">
+                        <div class="flex items-start gap-4 flex-1">
+                            <div class="flex flex-col items-center justify-center bg-[#003865] text-white rounded-xl px-3 py-2 shrink-0 shadow-sm">
+                                <span class="text-[9px] font-bold uppercase tracking-wider opacity-80">${statusFiltroAtivo === 'Andamento' ? 'Fila' : 'Concluído'}</span>
+                                <span class="text-sm font-extrabold">${index + 1}º</span>
+                            </div>
+                            <div class="space-y-1 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-400">#${d.id}</span>
+                                    <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded ${tagGrauCor}">${d.categoria}</span>
+                                </div>
+                                <h4 class="font-extrabold text-slate-900 text-sm">${d.titulo}</h4>
+                                <p class="text-xs text-slate-500 italic mt-1">${resumoDesc}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0 justify-end pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+                            ${acoesInternasHTML}
+                            <button onclick="window.abrirDetalhes('${d.id}')" class="bg-white hover:bg-slate-100 text-[#003865] border border-slate-300 px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-eye"></i> Ver Detalhes
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        window.onload = function() {
+            atualizarInterfaceModo();
+            window.renderizarTudo();
+        };
+        atualizarInterfaceModo();
+        window.renderizarTudo();
+    </script>
+</body>
+</html>
